@@ -8,7 +8,9 @@ The state of California has a goal to generate 60% of its electrical energy from
 With this project we'd like to model the growth of renewable energy using the available historical data, then project future growth and estimate the likelihood of CA reaching its renewable energy goals.
 
 ```
-Disclaimer: The CAISO reports use raw data and are not intended to be used as the basis for operational or financial decisions.
+   Disclaimer: 
+      The CAISO reports use raw data and are not intended
+      to be used as the basis for operational or financial decisions.
 ```
 
 ## Solution Approach
