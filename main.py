@@ -1,8 +1,9 @@
 import data
+import sys, getopt
 
-def main():
-    print("Running renewable energy project ...")
+def main(argv):
+    print("Running renewable energy project ... ")
     data_path = data.wrangle()
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
