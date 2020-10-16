@@ -46,6 +46,7 @@ def preprocess(data_path):
     dataframe = df_cleanse(dataframe)
     dataframe = df_format(dataframe)
     dataframe = df_fill(dataframe)
+    dataframe = df_engineer(dataframe)
     preprocessed_data_path = '/tmp/preprocessed_data.csv'
     dataframe.to_csv(preprocessed_data_path, index = False)
     print(str.format("Saved preprocessed data: {0} rows x {1} columns in file {2}",dataframe.shape[0],dataframe.shape[1],preprocessed_data_path))
@@ -118,7 +119,7 @@ def df_fill_dates(df):
         hrs = len(date_data)
         if (hrs < 24) :
             #fill missing hours
-            for hr in range(1,24):
+            for hr in range(1,25):
                 hr_data = df.loc[(df['DATE'] == dt) & (df['HOUR'] == hr)]
                 if len(hr_data) < 1 :
                     print(str.format("Adding DATE: {0}, HOUR: {1}", dt.strftime("%m/%d/%y"), hr))
@@ -164,6 +165,15 @@ def df_fill_values_col(df, col):
             # remember last nonzero value
             last_value = cdata[i]
         i = i + 1
+    return df
+
+def df_engineer(df):
+    print("Feature engineering ...")
+    print("  Adding timestamps ...")
+    df['TIMESTAMP'] = df['DATE']
+    l = len(df)
+    for r in range(0,l):
+        df.at[r,'TIMESTAMP'] = df['DATE'][r] + timedelta(hours=int(df['HOUR'][r])-1)
     return df
 
 def daterange(start_date, end_date):
