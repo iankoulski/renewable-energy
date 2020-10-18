@@ -4,14 +4,15 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import timedelta,date,datetime
+from kale.sdk import step
 
-def wrangle():
+@step(name='wrangle')
+def wrangle(data_path):
     print("Wrangling data ...")
-    data_path = '/tmp/data.csv'
     row_count,col_count = scrape_url('http://content.caiso.com',data_path)
     print(str.format("Saved {0} rows x {1} columns in file {2}",row_count,col_count,data_path))
-
-
+    return data_path
+    
 def scrape_url(base_url,file_path):
     page = requests.get(str.format('{0}/green/renewrpt/files.html',base_url))
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -40,6 +41,7 @@ def wrangle_data(file_url):
         frame = frame.append({'DATE':date,'HOUR':row[0],'RENEWABLES':row[1],'NUCLEAR':row[2],'THERMAL':row[3],'IMPORTS':row[4],'HYDRO':row[5]}, ignore_index = True)
     return frame
 
+@step(name='preprocess')
 def preprocess(data_path):
     print("Preprocessiong data ...")
     dataframe = pd.read_csv(data_path)
@@ -184,6 +186,7 @@ def df_engineer(df):
 
     return df
 
+@step(name='split')
 def split(data_path, train_pct, train_data_path, test_data_path):
     print("Splitting data ...")
     print(str.format("  Training: {0}%, Testing {1}%", train_pct, 100 - train_pct))
@@ -194,7 +197,7 @@ def split(data_path, train_pct, train_data_path, test_data_path):
     df_test = dataframe[split_idx+1:]
     df_train.to_csv(train_data_path, index = False)
     df_test.to_csv(test_data_path, index = False)
-    return len(df_train), len(df_test)    
+    return train_data_path, test_data_path    
 
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):

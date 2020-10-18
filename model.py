@@ -9,7 +9,9 @@ from math import sqrt
 import numpy as np
 import pickle
 import datetime
+from kale.sdk import step
 
+@step(name='prophet_build')
 def buildProphet(train_data_path, test_data_path):
     # load data
     print("Building Prophet model ...")
@@ -68,6 +70,7 @@ def buildProphet(train_data_path, test_data_path):
         print(str.format("Prophet RMSE: {:.2f}, R2: {:.2f}", rmse, r2score))
     return rmse, r2score
 
+@step(name='prophet_predict')
 def predictProphet(data_path,periods):
     print("Training prophet model with full dataset ...")
     df = pd.read_csv(data_path)
@@ -101,6 +104,7 @@ def rmse(actual,predict):
     score = np.sqrt(mean_square_distance)
     return score
 
+@step(name='randomforest_build')
 def buildRandomForestRegression(train_data_path,test_data_path):
     print("Building Random Forest Regression Model ...")
 
@@ -139,6 +143,7 @@ def buildRandomForestRegression(train_data_path,test_data_path):
     print(str.format("Random Forest Regression RMSE: {:.2f}, R2: {:.2f}", rmsescore, r2score))
     return rmsescore,r2score
 
+@step(name='randomforest_predict')
 def predictRandomForestRegression(data_path,periods):
     print("Training Random Forest Regression model with full dataset ...")
     df = pd.read_csv(data_path)
