@@ -156,7 +156,7 @@ def df_fill_values_col(df, col):
             j = i
             avg = (last_value + next_value)/2
             while (j<l) and (cdata[j] == 0):
-                print(str.format("   Setting column {0} row {1} to {2} ...", col, j, avg))
+                print(str.format("   Imputing column {0} row {1} as {2} ...", col, j, avg))
                 df.at[j,col] = avg
                 df.at[j,'IMPUTED'] = 1
                 j = j + 1
@@ -169,12 +169,32 @@ def df_fill_values_col(df, col):
 
 def df_engineer(df):
     print("Feature engineering ...")
+    
     print("  Adding timestamps ...")
     df['TIMESTAMP'] = df['DATE']
     l = len(df)
     for r in range(0,l):
         df.at[r,'TIMESTAMP'] = df['DATE'][r] + timedelta(hours=int(df['HOUR'][r])-1)
+    
+    print("   Adding NONRENEWABLES ...")
+    df['NONRENEWABLES'] = df['NUCLEAR'] + df['THERMAL'] + df['HYDRO'] + df['IMPORTS']
+
+    print("   Adding RATIO ...")
+    df['RENEWABLES_RATIO'] = df['RENEWABLES'] / df['NONRENEWABLES']
+
     return df
+
+def split(data_path, train_pct, train_data_path, test_data_path):
+    print("Splitting data ...")
+    print(str.format("  Training: {0}%, Testing {1}%", train_pct, 100 - train_pct))
+    dataframe = pd.read_csv(data_path)
+    split_idx = int(len(dataframe) * (train_pct/100))
+    split_idx = split_idx - split_idx % 24
+    df_train = dataframe[:split_idx]
+    df_test = dataframe[split_idx+1:]
+    df_train.to_csv(train_data_path, index = False)
+    df_test.to_csv(test_data_path, index = False)
+    return len(df_train), len(df_test)    
 
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
