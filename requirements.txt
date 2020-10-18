@@ -1,8 +1,9 @@
 requests
 beautifulsoup4
 pandas
+numpy
 sklearn
 fbprophet
 plotly
 matplotlib
-seaborns
+seaborn
