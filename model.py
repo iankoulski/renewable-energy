@@ -7,6 +7,7 @@ from math import sqrt
 import numpy as np
 import datetime
 from kale.sdk import step
+import os
 
 @step(name='prophet_build')
 def buildProphet(train_data_path, test_data_path):
@@ -16,6 +17,7 @@ def buildProphet(train_data_path, test_data_path):
     from fbprophet import Prophet
     from sklearn import metrics, ensemble, model_selection
     from math import sqrt
+    import os
     
     # load data
     print("Building Prophet model ...")
@@ -38,7 +40,8 @@ def buildProphet(train_data_path, test_data_path):
     plt.subplot(2, 1, 2)
     sns.boxplot(hour, y)
     plt.title('Renewable vs Non-renewable Power Production Ratio grouped by Hour')
-    plt.savefig('/tmp/renewable-ratio-history.png')
+    wd = os.path.dirname(train_data_path)
+    plt.savefig(wd + '/renewable-ratio-history.png')
     #plt.show()
 
     # Predict future renewable energy production using Prophet
@@ -53,7 +56,7 @@ def buildProphet(train_data_path, test_data_path):
     plt.title('Forecasted Renewable vs Non-renewable Power Production Ratio')
     axes = plt.gca()
     print('Future Renewable vs Non-renewable Power Production Ratio')
-    figR.savefig('/tmp/renewable-ratio-forecast.png')
+    figR.savefig(wd + '/renewable-ratio-forecast.png')
 
     # Caluclate prediction accuracy
     rmse = -1.0
@@ -86,16 +89,17 @@ def predictProphet(data_path,periods):
     m = Prophet(daily_seasonality=False)
     m.fit(dd)
     future=m.make_future_dataframe(periods=periods)
-    print(str.format("Predicting with prophet model for {0} days ({1} years) ...",periods, periods/365))
+    print(str.format("\nPredicting with prophet model for {0} days ({1} years) ...",periods, int(periods/365)))
     forecast=m.predict(future)
     fig = m.plot(forecast,ylabel='Renewable Power Production Ratio', xlabel='Date')
     plt.title('CA Forecasted Renewable vs Non-renewable Power Production Ratio')
     axes = plt.gca()
     print('CA Future Renewable vs Non-renewable Power Production Ratio')
-    fig.savefig('/tmp/renewable-ratio-forecast.png')
+    wd = os.path.dirname(data_path)
+    fig.savefig(wd + '/renewable-ratio-forecast.png')
     forecast.rename(columns={'ds':'TIMESTAMP'}, inplace=True)
     forecast.set_index('TIMESTAMP',inplace=True)
-    prediction = pd.DataFrame({'RENEWABLES_RATIO_MEAN':forecast['yhat'].resample('1Y').mean(),'RENEWABLE_RATIO_LOWER':forecast['yhat_lower'].resample('1Y').mean(),'RENEWABLE_RATIO_UPPER':forecast['yhat_upper'].resample('1Y').mean()})
+    prediction = pd.DataFrame({'RENEWABLES_RATIO_MEAN':forecast['yhat'].resample('1Y').mean(),'RENEWABLES_RATIO_LOWER':forecast['yhat_lower'].resample('1Y').mean(),'RENEWABLES_RATIO_UPPER':forecast['yhat_upper'].resample('1Y').mean()})
     return prediction
 
 def rmse(actual,predict):
@@ -197,7 +201,7 @@ def predictRandomForestRegression(data_path,periods):
     best_model_min = gsearch_min.best_estimator_
     best_model_max = gsearch_max.best_estimator_
     
-    print("Predicting with Random Forest regressor ...")
+    print("\nPredicting with Random Forest regressor ...")
     prediction = pd.DataFrame(columns=['TIMESTAMP','RENEWABLES_RATIO'])
     l = len(x_train)
     x_pred = x_train.iloc[[l-1]]
@@ -216,7 +220,7 @@ def predictRandomForestRegression(data_path,periods):
         ymini_pred = best_model.predict(xmini_pred)
         xmaxi_pred = pd.DataFrame({'YESTERDAY':ymax_pred,'YESTERDAY_DIFF':ymax_pred-xmax_pred['YESTERDAY'],'YESTERDAY-1':xmax_pred['YESTERDAY'],'YESTERDAY-1_DIFF':xmax_pred['YESTERDAY_DIFF']})
         ymaxi_pred = best_model.predict(xmaxi_pred)
-        prediction = prediction.append({'TIMESTAMP':ti,'RENEWABLES_RATIO':yi_pred[0],'RENEWABLES_RATIO_MIN':ymini_pred[0],'RENEWABLES_RATIO_MAX':ymaxi_pred[0]}, ignore_index=True)
+        prediction = prediction.append({'TIMESTAMP':ti,'RENEWABLES_RATIO_MEAN':yi_pred[0],'RENEWABLES_RATIO_LOWER':ymini_pred[0],'RENEWABLES_RATIO_UPPER':ymaxi_pred[0]}, ignore_index=True)
         x_pred = xi_pred
         y_pred = yi_pred
         xmin_pred = xmini_pred
@@ -230,7 +234,8 @@ def predictRandomForestRegression(data_path,periods):
     p = prediction.plot()
     p.set_title('CA Predicted Renewables Ratio by Random Forest Regression')
     p.set_ylabel('RATIO')
-    plt.savefig('/tmp/renewables-ratio-forecast-rf.png')
+    wd = os.path.dirname(data_path)
+    plt.savefig(wd + '/renewables-ratio-forecast-rf.png')
 
     return prediction
 
@@ -245,16 +250,21 @@ def predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path
         print("The best model is RandomForestRegression")
         prediction = predictRandomForestRegression(preprocessed_data_path,12*30)
         
-    visualizePrediction(prediction)
-    return True
+#    visualizePrediction(prediction)
+    return prediction
 
-#@step( name = 'visualize_prediction')
+@step( name = 'visualize_prediction')
 def visualizePrediction(prediction):
+    import pandas as pd
     print("Visualizing prediction ...")
     print("Prediction:")
     print(prediction)
     
     prediction.reset_index(inplace=True)
     print("\nPrediction for CA Renewables Ratio in Key Years:")
-    print(prediction[prediction['TIMESTAMP'] == pd.to_datetime('12-31-2030')])
-    print(prediction[prediction['TIMESTAMP'] == pd.to_datetime('12-31-2045')])
+    prediction2030 = prediction[prediction['TIMESTAMP'] == pd.to_datetime('12-31-2030')]
+    prediction2045 = prediction[prediction['TIMESTAMP'] == pd.to_datetime('12-31-2045')]
+    print(str.format("   Prophet prediction 12/31/2030:"))
+    print(str.format("      low: {:.2f}, mean: {:.2f}, high: {:.2f}",prediction2030['RENEWABLES_RATIO_LOWER'].values[0],prediction2030['RENEWABLES_RATIO_MEAN'].values[0],prediction2030['RENEWABLES_RATIO_UPPER'].values[0]))
+    print(str.format("   Prophet prediction 12/31/2045:"))
+    print(str.format("      low: {:.2f}, mean: {:.2f}, high: {:.2f}",prediction2045['RENEWABLES_RATIO_LOWER'].values[0],prediction2045['RENEWABLES_RATIO_MEAN'].values[0],prediction2045['RENEWABLES_RATIO_UPPER'].values[0]))

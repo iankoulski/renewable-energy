@@ -13,8 +13,8 @@ def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache =
     train_data_path, test_data_path = split(preprocessed_data_path, train_pct)
     prophet_rmse, prophet_r2score = buildProphet(train_data_path, test_data_path)
     randomforest_rmse, randomforest_r2score = buildRandomForestRegression(train_data_path, test_data_path)
-    predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path)
-    #visualizePrediction(prediction)
+    prediction = predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path)
+    visualizePrediction(prediction)
     
 def main(argv):
     print("Running renewable energy project ... ")
