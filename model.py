@@ -2,17 +2,21 @@ import pandas as pd
 from fbprophet import Prophet
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn import metrics
-from sklearn import ensemble
-from sklearn import model_selection
+from sklearn import metrics, ensemble, model_selection
 from math import sqrt
 import numpy as np
-import pickle
 import datetime
 from kale.sdk import step
 
 @step(name='prophet_build')
 def buildProphet(train_data_path, test_data_path):
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    from fbprophet import Prophet
+    from sklearn import metrics, ensemble, model_selection
+    from math import sqrt
+    
     # load data
     print("Building Prophet model ...")
     df = pd.read_csv(train_data_path)
@@ -70,7 +74,6 @@ def buildProphet(train_data_path, test_data_path):
         print(str.format("Prophet RMSE: {:.2f}, R2: {:.2f}", rmse, r2score))
     return rmse, r2score
 
-@step(name='prophet_predict')
 def predictProphet(data_path,periods):
     print("Training prophet model with full dataset ...")
     df = pd.read_csv(data_path)
@@ -83,7 +86,7 @@ def predictProphet(data_path,periods):
     m = Prophet(daily_seasonality=False)
     m.fit(dd)
     future=m.make_future_dataframe(periods=periods)
-    print(str.format("Predicting with prophet model for {0} days ...",periods))
+    print(str.format("Predicting with prophet model for {0} days ({1} years) ...",periods, periods/365))
     forecast=m.predict(future)
     fig = m.plot(forecast,ylabel='Renewable Power Production Ratio', xlabel='Date')
     plt.title('CA Forecasted Renewable vs Non-renewable Power Production Ratio')
@@ -104,8 +107,26 @@ def rmse(actual,predict):
     score = np.sqrt(mean_square_distance)
     return score
 
+def transformDataset(df):
+    # Add ratio from one and two days ago as well as difference in yesterday-1 and yesterday-1
+    renewables_ratio = df['RENEWABLES_RATIO']
+    df['YESTERDAY'] = df['RENEWABLES_RATIO'].shift()
+    df['YESTERDAY_DIFF'] = df['YESTERDAY'].diff()
+    df['YESTERDAY-1']=df['YESTERDAY'].shift()
+    df['YESTERDAY-1_DIFF'] = df['YESTERDAY-1'].diff()
+    df=df.dropna()
+    x_train=pd.DataFrame({'YESTERDAY':df['YESTERDAY'],'YESTERDAY_DIFF':df['YESTERDAY_DIFF'],'YESTERDAY-1':df['YESTERDAY-1'],'YESTERDAY-1_DIFF':df['YESTERDAY-1_DIFF']})
+    y_train = df['RENEWABLES_RATIO']
+    return x_train,y_train
+
 @step(name='randomforest_build')
 def buildRandomForestRegression(train_data_path,test_data_path):
+    import pandas as pd
+    import seaborn as sns
+    from sklearn import metrics, ensemble, model_selection
+    from math import sqrt
+    from model import transformDataset, rmse
+    
     print("Building Random Forest Regression Model ...")
 
     print("Preparing training dataset ...")
@@ -143,7 +164,6 @@ def buildRandomForestRegression(train_data_path,test_data_path):
     print(str.format("Random Forest Regression RMSE: {:.2f}, R2: {:.2f}", rmsescore, r2score))
     return rmsescore,r2score
 
-@step(name='randomforest_predict')
 def predictRandomForestRegression(data_path,periods):
     print("Training Random Forest Regression model with full dataset ...")
     df = pd.read_csv(data_path)
@@ -214,15 +234,27 @@ def predictRandomForestRegression(data_path,periods):
 
     return prediction
 
+@step( name = 'predict_with_best_model')
+def predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path):
+    from model import predictProphet, predictRandomForestRegression, visualizePrediction
+    print("Comparing models ...")
+    if (prophet_rmse <= randomforest_rmse):
+        print("The best model is Prophet")
+        prediction = predictProphet(preprocessed_data_path,365*30)
+    else:
+        print("The best model is RandomForestRegression")
+        prediction = predictRandomForestRegression(preprocessed_data_path,12*30)
+        
+    visualizePrediction(prediction)
+    return True
 
-def transformDataset(df):
-    # Add ratio from one and two days ago as well as difference in yesterday-1 and yesterday-1
-    renewables_ratio = df['RENEWABLES_RATIO']
-    df['YESTERDAY'] = df['RENEWABLES_RATIO'].shift()
-    df['YESTERDAY_DIFF'] = df['YESTERDAY'].diff()
-    df['YESTERDAY-1']=df['YESTERDAY'].shift()
-    df['YESTERDAY-1_DIFF'] = df['YESTERDAY-1'].diff()
-    df=df.dropna()
-    x_train=pd.DataFrame({'YESTERDAY':df['YESTERDAY'],'YESTERDAY_DIFF':df['YESTERDAY_DIFF'],'YESTERDAY-1':df['YESTERDAY-1'],'YESTERDAY-1_DIFF':df['YESTERDAY-1_DIFF']})
-    y_train = df['RENEWABLES_RATIO']
-    return x_train,y_train
+#@step( name = 'visualize_prediction')
+def visualizePrediction(prediction):
+    print("Visualizing prediction ...")
+    print("Prediction:")
+    print(prediction)
+    
+    prediction.reset_index(inplace=True)
+    print("\nPrediction for CA Renewables Ratio in Key Years:")
+    print(prediction[prediction['TIMESTAMP'] == pd.to_datetime('12-31-2030')])
+    print(prediction[prediction['TIMESTAMP'] == pd.to_datetime('12-31-2045')])

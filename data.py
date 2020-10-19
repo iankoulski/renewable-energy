@@ -5,12 +5,25 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import timedelta,date,datetime
 from kale.sdk import step
+import os
 
-@step(name='wrangle')
-def wrangle(data_path):
+@step(name='wrangle_data')
+def wrangle(wd, cache):
+    import os
     print("Wrangling data ...")
-    row_count,col_count = scrape_url('http://content.caiso.com',data_path)
-    print(str.format("Saved {0} rows x {1} columns in file {2}",row_count,col_count,data_path))
+    data_path = wd + '/data.csv'
+    cacheFound = False
+    if cache:
+        print("Checking for cached data ...")
+        if os.path.isfile(data_path):
+            print(" ... found.")
+            cacheFound = True
+        else:
+            print(" ... not found. Downloading ...")
+
+    if (not cache) or (cache and not cacheFound): 
+        row_count,col_count = scrape_url('http://content.caiso.com',data_path)
+        print(str.format("Saved {0} rows x {1} columns in file {2}",row_count,col_count,data_path))
     return data_path
     
 def scrape_url(base_url,file_path):
@@ -41,17 +54,27 @@ def wrangle_data(file_url):
         frame = frame.append({'DATE':date,'HOUR':row[0],'RENEWABLES':row[1],'NUCLEAR':row[2],'THERMAL':row[3],'IMPORTS':row[4],'HYDRO':row[5]}, ignore_index = True)
     return frame
 
-@step(name='preprocess')
-def preprocess(data_path):
+@step(name='preprocess_dataset')
+def preprocess(data_path, cache):
+    import os
     print("Preprocessiong data ...")
-    dataframe = pd.read_csv(data_path)
-    dataframe = df_cleanse(dataframe)
-    dataframe = df_format(dataframe)
-    dataframe = df_fill(dataframe)
-    dataframe = df_engineer(dataframe)
-    preprocessed_data_path = '/tmp/preprocessed_data.csv'
-    dataframe.to_csv(preprocessed_data_path, index = False)
-    print(str.format("Saved preprocessed data: {0} rows x {1} columns in file {2}",dataframe.shape[0],dataframe.shape[1],preprocessed_data_path))
+    preprocessed_data_path = os.path.dirname(data_path) + '/preprocessed_data.csv'
+    preprocessedDataFound = False
+    if cache:
+        print("Caching is enabled. Checking " + preprocessed_data_path + ' ...')
+        if os.path.isfile(preprocessed_data_path):
+            print(' ... Found.')
+            preprocessedDataFound = True
+        else:
+            print(' ... Not found!')
+    if (not cache) or (cache and not preprocessedDataFound):        
+        dataframe = pd.read_csv(data_path)
+        dataframe = df_cleanse(dataframe)
+        dataframe = df_format(dataframe)
+        dataframe = df_fill(dataframe)
+        dataframe = df_engineer(dataframe)
+        dataframe.to_csv(preprocessed_data_path, index = False)
+        print(str.format("Saved preprocessed data: {0} rows x {1} columns in file {2}",dataframe.shape[0],dataframe.shape[1],preprocessed_data_path))
     return preprocessed_data_path
 
 def df_cleanse(df):
@@ -186,8 +209,10 @@ def df_engineer(df):
 
     return df
 
-@step(name='split')
-def split(data_path, train_pct, train_data_path, test_data_path):
+@step(name='split_dataset_for_training')
+def split(data_path, train_pct):
+    import pandas as pd
+    import os
     print("Splitting data ...")
     print(str.format("  Training: {0}%, Testing {1}%", train_pct, 100 - train_pct))
     dataframe = pd.read_csv(data_path)
@@ -195,6 +220,9 @@ def split(data_path, train_pct, train_data_path, test_data_path):
     split_idx = split_idx - split_idx % 24
     df_train = dataframe[:split_idx]
     df_test = dataframe[split_idx+1:]
+    wd = os.path.dirname(data_path)
+    train_data_path = wd + '/train_data.csv'
+    test_data_path = wd + '/test_data.csv'
     df_train.to_csv(train_data_path, index = False)
     df_test.to_csv(test_data_path, index = False)
     return train_data_path, test_data_path    

@@ -1,18 +1,20 @@
-import data
-import model
+from kale.sdk import pipeline
+from data import wrangle, preprocess, split
+from model import buildProphet, buildRandomForestRegression, predictWithBestModel, visualizePrediction 
 import sys
 import pandas as pd
-from kale.sdk import pipeline
 
-@pipeline(name='renewable_energy_pipeline',
-          experiment='renewable_energy',
-          autosnapshot=False)
-def renewable_energy_pipeline(wd='.'):
-    data_path = data.wrangle(wd + '/data.csv')
-    preprocessed_data_path = data.preprocess(data_path)
-    train_data_path, test_data_path = data.split(preprocessed_data_path, 70, wd+'/train_data.csv', wd+'/test_data.csv')
-    prophet_rmse, prophet_r2score = model.buildProphet(train_data_path, test_data_path)
-    randomforest_rmse, randomforest_r2score = model.buildRandomForestRegression(train_data_path, test_data_path)
+@pipeline(name='renewable-energy-pipeline',
+          experiment='renewable-energy',
+          autosnapshot=False)    
+def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache = True, train_pct = 70):
+    data_path = wrangle(wd, wrangle_cache)
+    preprocessed_data_path = preprocess(data_path, preprocess_cache)
+    train_data_path, test_data_path = split(preprocessed_data_path, train_pct)
+    prophet_rmse, prophet_r2score = buildProphet(train_data_path, test_data_path)
+    randomforest_rmse, randomforest_r2score = buildRandomForestRegression(train_data_path, test_data_path)
+    predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path)
+    #visualizePrediction(prediction)
     
 def main(argv):
     print("Running renewable energy project ... ")
@@ -47,4 +49,4 @@ def main(argv):
 
 if __name__ == "__main__":
     #main(sys.argv[1:])
-    renewable_energy_pipeline(wd='.')
+    renewable_energy_pipeline( wd = '.', wrangle_cache = True, preprocess_cache = True, train_pct = 70)
