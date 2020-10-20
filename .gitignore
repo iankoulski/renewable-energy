@@ -4,3 +4,4 @@ __pycache__/
 *.log
 .kale
 .marshal
+mlpipeline-ui-metadata.json

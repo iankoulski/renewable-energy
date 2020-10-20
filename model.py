@@ -253,9 +253,15 @@ def predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path
 #    visualizePrediction(prediction)
     return prediction
 
-@step( name = 'visualize_prediction')
-def visualizePrediction(prediction):
+@step( name = 'visualize_prediction' )
+def visualizePrediction(wd, prediction):
     import pandas as pd
+    import io
+    import json
+    import matplotlib.pyplot as plt
+    import base64
+    
+    # Log output
     print("Visualizing prediction ...")
     print("Prediction:")
     print(prediction)
@@ -268,3 +274,37 @@ def visualizePrediction(prediction):
     print(str.format("      low: {:.2f}, mean: {:.2f}, high: {:.2f}",prediction2030['RENEWABLES_RATIO_LOWER'].values[0],prediction2030['RENEWABLES_RATIO_MEAN'].values[0],prediction2030['RENEWABLES_RATIO_UPPER'].values[0]))
     print(str.format("   Prophet prediction 12/31/2045:"))
     print(str.format("      low: {:.2f}, mean: {:.2f}, high: {:.2f}",prediction2045['RENEWABLES_RATIO_LOWER'].values[0],prediction2045['RENEWABLES_RATIO_MEAN'].values[0],prediction2045['RENEWABLES_RATIO_UPPER'].values[0]))
+    
+    # Table output
+    prediction.to_csv(wd+'/prediction.csv', index=False)
+    s = io.StringIO()
+    prediction.to_csv(s, index=False)
+    
+    # Plot output
+    prediction.set_index('TIMESTAMP', inplace=True)
+    plot = prediction.plot()
+    plot.set_title('Predicted CA Renewables vs Non-renewables Ratio')
+    plot.set_xlabel('Date')
+    plot.set_ylabel('Ratio')
+    plt.savefig(wd + '/prediction.png')
+    with open(wd + '/prediction.png', 'rb') as image_file:
+        image = base64.b64encode(image_file.read())
+    
+    # Metadata
+    metadata = {
+        'outputs': [{
+            'type': 'table',
+            'storage': 'inline',
+            'format': 'csv',
+            'header': ['TIMESTAMP','RENEWABLES_RATIO_MEAN','RENEWABLES_RATIO_LOWER','RENEWABLES_RATIO_UPPER'],
+            'source': s.getvalue()
+        },
+        {
+            'type': 'web-app',
+            'storage': 'inline',
+            'source': '<html><head><title>Plot</title></head><body><div><img src="data:image/png;base64, ' + image +'" /></div></body></html>'
+        }]
+    }
+    metadata_path = wd + '/mlpipeline-ui-metadata.json'
+    with open( metadata_path, 'w') as f:
+        json.dump(metadata,f)

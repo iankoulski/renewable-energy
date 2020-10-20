@@ -6,7 +6,7 @@ import pandas as pd
 
 @pipeline(name='renewable-energy-pipeline',
           experiment='renewable-energy',
-          autosnapshot=False)    
+          autosnapshot=True)    
 def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache = True, train_pct = 70):
     data_path = wrangle(wd, wrangle_cache)
     preprocessed_data_path = preprocess(data_path, preprocess_cache)
@@ -14,7 +14,8 @@ def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache =
     prophet_rmse, prophet_r2score = buildProphet(train_data_path, test_data_path)
     randomforest_rmse, randomforest_r2score = buildRandomForestRegression(train_data_path, test_data_path)
     prediction = predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path)
-    visualizePrediction(prediction)
+    visualizePrediction(wd, prediction)
+    
     
 def main(argv):
     print("Running renewable energy project ... ")
