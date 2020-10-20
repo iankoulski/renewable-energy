@@ -286,3 +286,4 @@ def visualizePrediction(wd, prediction):
     metadata_path = wd + '/mlpipeline-ui-metadata.json'
     with open( metadata_path, 'w') as f:
         json.dump(metadata,f)
+    
