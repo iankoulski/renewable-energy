@@ -6,19 +6,13 @@ from sklearn import metrics, ensemble, model_selection
 from math import sqrt
 import numpy as np
 import datetime
-from kale.sdk import step
 import os
+import io
+import json
+import base64
+#from model import predictProphet, predictRandomForestRegression, visualizePrediction
 
-@step(name='prophet_build')
-def buildProphet(train_data_path, test_data_path):
-    import pandas as pd
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-    from fbprophet import Prophet
-    from sklearn import metrics, ensemble, model_selection
-    from math import sqrt
-    import os
-    
+def buildProphet(train_data_path, test_data_path):    
     # load data
     print("Building Prophet model ...")
     df = pd.read_csv(train_data_path)
@@ -123,16 +117,9 @@ def transformDataset(df):
     y_train = df['RENEWABLES_RATIO']
     return x_train,y_train
 
-@step(name='randomforest_build')
-def buildRandomForestRegression(train_data_path,test_data_path):
-    import pandas as pd
-    import seaborn as sns
-    from sklearn import metrics, ensemble, model_selection
-    from math import sqrt
-    from model import transformDataset, rmse
-    
+def buildRandomForestRegression(train_data_path,test_data_path):    
     print("Building Random Forest Regression Model ...")
-
+    
     print("Preparing training dataset ...")
     df = pd.read_csv(train_data_path)
     df['TIMESTAMP'] = df['TIMESTAMP'].astype('datetime64')
@@ -239,9 +226,7 @@ def predictRandomForestRegression(data_path,periods):
 
     return prediction
 
-@step( name = 'predict_with_best_model')
 def predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path):
-    from model import predictProphet, predictRandomForestRegression, visualizePrediction
     print("Comparing models ...")
     if (prophet_rmse <= randomforest_rmse):
         print("The best model is Prophet")
@@ -253,13 +238,7 @@ def predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path
 #    visualizePrediction(prediction)
     return prediction
 
-@step( name = 'visualize_prediction' )
 def visualizePrediction(wd, prediction):
-    import pandas as pd
-    import io
-    import json
-    import matplotlib.pyplot as plt
-    import base64
     
     # Log output
     print("Visualizing prediction ...")
@@ -302,7 +281,7 @@ def visualizePrediction(wd, prediction):
         {
             'type': 'web-app',
             'storage': 'inline',
-            'source': '<html><head><title>Plot</title></head><body><div><img src="data:image/png;base64, ' + image +'" /></div></body></html>'
+            'source': '<html><head><title>Plot</title></head><body><div><img src="data:image/png;base64, ' + image.decode('ascii') +'" /></div></body></html>'
         }]
     }
     metadata_path = wd + '/mlpipeline-ui-metadata.json'

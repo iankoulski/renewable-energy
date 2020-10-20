@@ -7,9 +7,7 @@ from datetime import timedelta,date,datetime
 from kale.sdk import step
 import os
 
-@step(name='wrangle_data')
 def wrangle(wd, cache):
-    import os
     print("Wrangling data ...")
     data_path = wd + '/data.csv'
     cacheFound = False
@@ -54,9 +52,7 @@ def wrangle_data(file_url):
         frame = frame.append({'DATE':date,'HOUR':row[0],'RENEWABLES':row[1],'NUCLEAR':row[2],'THERMAL':row[3],'IMPORTS':row[4],'HYDRO':row[5]}, ignore_index = True)
     return frame
 
-@step(name='preprocess_dataset')
 def preprocess(data_path, cache):
-    import os
     print("Preprocessiong data ...")
     preprocessed_data_path = os.path.dirname(data_path) + '/preprocessed_data.csv'
     preprocessedDataFound = False
@@ -209,10 +205,7 @@ def df_engineer(df):
 
     return df
 
-@step(name='split_dataset_for_training')
 def split(data_path, train_pct):
-    import pandas as pd
-    import os
     print("Splitting data ...")
     print(str.format("  Training: {0}%, Testing {1}%", train_pct, 100 - train_pct))
     dataframe = pd.read_csv(data_path)
@@ -230,3 +223,4 @@ def split(data_path, train_pct):
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
+        
