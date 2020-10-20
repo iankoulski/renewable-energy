@@ -24,17 +24,6 @@ def split_step(preprocessed_data_path, train_pct):
     train_data_path, test_data_path = split(preprocessed_data_path, train_pct)
     return train_data_path, test_data_path
 
-def preprocess_step(data_path, preprocess_cache):
-    from data import preprocess
-    preprocessed_data_path = preprocess(data_path, preprocess_cache)
-    return preprocessed_data_path
-
-def split_step(preprocessed_data_path, train_pct):
-    from data import split
-    train_data_path, test_data_path = split(preprocessed_data_path, train_pct)
-    return train_data_path, test_data_path
-
-
 def prophet_build_step(train_data_path, test_data_path):
     from model import buildProphet
     prophet_rmse, prophet_r2score = buildProphet(train_data_path, test_data_path)
