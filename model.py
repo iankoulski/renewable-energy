@@ -10,7 +10,6 @@ import os
 import io
 import json
 import base64
-#from model import predictProphet, predictRandomForestRegression, visualizePrediction
 
 def buildProphet(train_data_path, test_data_path):    
     # load data
