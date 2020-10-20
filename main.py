@@ -85,8 +85,6 @@ def main(argv):
     print("Running renewable energy pipeline ... ")
     renewable_energy_pipeline( wd=wd, wrangle_cache=wrangle_cache, preprocess_cache=preprocess_cache, train_pct=train_pct)
 
-    print("Running renewable energy pipeline ... ")
-    renewable_energy_pipeline( wd=wd, wrangle_cache=wrangle_cache, preprocess_cache=preprocess_cache, train_pct=train_pct)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
