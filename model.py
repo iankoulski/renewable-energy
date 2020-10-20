@@ -1,3 +1,5 @@
+# module model
+
 import pandas as pd
 from fbprophet import Prophet
 import seaborn as sns
@@ -234,7 +236,6 @@ def predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path
         print("The best model is RandomForestRegression")
         prediction = predictRandomForestRegression(preprocessed_data_path,12*30)
         
-#    visualizePrediction(prediction)
     return prediction
 
 def visualizePrediction(wd, prediction):
