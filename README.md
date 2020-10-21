@@ -5,7 +5,9 @@ This repository is built as an example of a typical data science project. Its in
 ## Problem Statement
 The state of California has a [goal](https://www.ca.gov/archive/gov39/wp-content/uploads/2018/09/9.10.18-Executive-Order.pdf) to generate 60% of its electrical energy from renewable sources by 2030 and become carbon-neutral by 2045. The California Independent System Operator (CAISO) provides daily [reports](http://www.caiso.com/market/Pages/ReportsBulletins/RenewablesReporting.aspx) where it publicly discloses energy generation data for the state's grid broken down by source and recorded on an hourly basis.
 
-With this project we model the growth of renewable energy in the state of California using the available historical data, then project future growth and compare the model predictions with the state's renewable energy goals.
+With this project we model the growth of renewable energy in the state of California using the available historical data, then project future growth and compare the model predictions with the state's renewable energy goals. <big>Are these goals achievable?</big>
+
+
 
 ```
    Disclaimer: 
