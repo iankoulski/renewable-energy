@@ -17,26 +17,33 @@ With this project we model the growth of renewable energy in the state of Califo
 The solution approach is to break down the problem and solve the following subproblems, or steps. The steps can then be executed sequentially or in parallel depending on their dependencies.
 
 ### Data wrangling
-Download all available data from the [bulletins](http://content.caiso.com/green/renewrpt/files.html) published on CAISO's website. Combine all data into a single table and save it locally as [data.csv](data.csv).
+Download all available data from the [bulletins](http://content.caiso.com/green/renewrpt/files.html) published on CAISO's website. Combine all data into a single table and save it locally as [data.csv](data/data.csv).
 
 ### Data preprocessing
-Assess data quality and perform clensing, formatting, imputation, and feature engineering as needed. Save the resulting preprocessed data set as [preprocessed_data.csv](preprocessed_data.csv). Perform some initial analysis and [visualization](renewable_ratio-history.png) of the data to better understand its content.
+Assess data quality and perform clensing, formatting, imputation, and feature engineering as needed. Save the resulting preprocessed data set as [preprocessed_data.csv](preprocessed_data.csv). Perform some initial analysis and [visualization](images/renewables-ratio-history.png) of the data to better understand its content.
+<img src="images/renewables-ratio-history.png">
 
 ### Dataset splitting
-Split the data into a training and testing set, producing files [train_data.csv](train_data.csv) and [test_data.csv](test_data.csv) respectively.
+Split the data into a training and testing set, producing files [train_data.csv](data/train_data.csv) and [test_data.csv](data/test_data.csv) respectively.
 
 ### Modeling technique selection
 Build models using different modeling techniques and the training dataset, validate the models and compute model quality metrics based on the testing dataset. Select the technique which produces the most accurate model. In this example we use the [Facebook Prophet](https://facebook.github.io/prophet/) time series forecasting procedure as well as the [Scikit-learn Random Forest Regressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html) to model the ratio of renewable vs. non-renewable energy over time. The final selection of modeling technique is done automatically based on the root mean square error calculated against the testing dataset.
 
 ### Model building and prediction
-Train a model using the selected best modeling technique and the full dataset, then predict renewable energy generation for the next 30 years. Save the result locally as [prediction.csv](prediction.csv).
+Train a model using the selected best modeling technique and the full dataset, then [predict](images/renewables-ratio-forecast.png) renewable energy generation for the next 30 years. Save the result locally as [data/prediction.csv](prediction.csv).
+<img src="images/renewables-ratio-forecast.png">
 
-### Visualize results
-[Visualize](renewable-ratio-forecast.png) predictions. Compare forecasted values for years 2030 and 2045 to California's goals of 60% and 100% renewable energy production respectively. 
+### Visualizing results
+[Visualize](images/prediction.png) predictions. Compare forecasted values for years 2030 and 2045 to California's goals of 60% and 100% renewable energy production respectively. 
+<img src="images/prediction.png">
+
+The model predicts that California's carbon neutrality goal is achievable, but also there is a large margin of error, especially when we look further into the future. One way to interpret this prediction is that whether the goal is achieved or not will depend on what we do every day while working to achieve carbon neutrality.
 
 ## Data Science Workflow
 
-Initially, the data sicentist develops the project using Python locally and pushes it to a Git [repository](https://github.com/iankoulski/renewable-energy). Then the data scienist logs on to a Kubeflow instance on the cloud, spins up a shared JupyterLab server and clones the code. As instructed by an MLOps expert, the data scientist makes a quick modification in the main file of the project, adding an import of the Kale SDK and decorating its functions using @pipeline and @step. This converts the code from a regular python project to a Kubeflow pipeline. <br/>
+Initially, the data sicentist develops the project using Python locally and pushes it to a Git [repository](https://github.com/iankoulski/renewable-energy). Then the data scienist logs on to a Kubeflow instance on the cloud, spins up a shared JupyterLab server and clones the code. As instructed by an MLOps expert, the data scientist makes a quick modification in the main file of the project, adding an import of the Kale SDK and decorating its functions using @pipeline and @step. 
+
+This converts the code from a regular python project to a Kubeflow pipeline. <br/>
 
 The pipeline can still run locally like before by executing:
 ```
@@ -46,8 +53,14 @@ and it can also run in Kubeflow by executing:
 ```
    python3 main.py --kfp
 ```
+
+<image src="images/kale-kfp.png">
+
 ## Conclusion
 Following a simple worklow, the data scientist is able to transform a regular machine learning project into an automated Kubeflow pipeline. The pipeline can be run manually or scheduled to run periodically as needed. Through the use of tools like Kale and Kubeflow, running on Kubernetes, this demonstration uses a real-world example to show the power of democratizing and accelerating pipeline orchestration. Even though the focus of this example is on machine learning, the same approach applies for many other domains.
+
+<image src="images/pipeline.png">
+
 
 ## References
 
