@@ -44,6 +44,7 @@ The model predicts that California's carbon neutrality goal is achievable, but a
 ## Data Science Workflow
 
 Initially, the data sicentist develops the project using Python locally and pushes it to a Git [repository](https://github.com/iankoulski/renewable-energy). Then the data scienist logs on to a Kubeflow instance on the cloud, spins up a shared JupyterLab server and clones the code. As instructed by an MLOps expert, the data scientist makes a quick modification in the main file of the project, adding an import of the Kale SDK and decorating its functions using @pipeline and @step. 
+<image src="images/decorators.png">
 
 This converts the code from a regular python project to a Kubeflow pipeline. <br/>
 
