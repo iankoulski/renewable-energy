@@ -9,7 +9,7 @@ import os
 
 def wrangle(wd, cache):
     print("Wrangling data ...")
-    data_path = wd + '/data.csv'
+    data_path = wd + '/data/data.csv'
     cacheFound = False
     if cache:
         print("Checking for cached data ...")
@@ -35,6 +35,7 @@ def scrape_url(base_url,file_path):
             file_url = base_url + href
             frame = wrangle_data(file_url)
             dataframe = dataframe.append(frame, ignore_index = True)
+    os.makedirs(os.path.dirname(file_path, exist_ok=True))
     dataframe.to_csv(file_path, index = False)
     return dataframe.shape[0], dataframe.shape[1]
 
@@ -69,6 +70,7 @@ def preprocess(data_path, cache):
         dataframe = df_format(dataframe)
         dataframe = df_fill(dataframe)
         dataframe = df_engineer(dataframe)
+        os.makedirs(os.path.dirname(preprocessed_data_path, exist_ok=True))
         dataframe.to_csv(preprocessed_data_path, index = False)
         print(str.format("Saved preprocessed data: {0} rows x {1} columns in file {2}",dataframe.shape[0],dataframe.shape[1],preprocessed_data_path))
     return preprocessed_data_path
@@ -216,6 +218,7 @@ def split(data_path, train_pct):
     wd = os.path.dirname(data_path)
     train_data_path = wd + '/train_data.csv'
     test_data_path = wd + '/test_data.csv'
+    os.makedirs(wd, exist_ok=True)
     df_train.to_csv(train_data_path, index = False)
     df_test.to_csv(test_data_path, index = False)
     return train_data_path, test_data_path    

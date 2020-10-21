@@ -35,8 +35,9 @@ def buildProphet(train_data_path, test_data_path):
     plt.subplot(2, 1, 2)
     sns.boxplot(hour, y)
     plt.title('Renewable vs Non-renewable Power Production Ratio grouped by Hour')
-    wd = os.path.dirname(train_data_path)
-    plt.savefig(wd + '/renewable-ratio-history.png')
+    wd = os.path.dirname(train_data_path) + '/../images'
+    os.makedirs(wd, exist_ok=True)
+    plt.savefig(wd + '/renewables-ratio-history.png')
     #plt.show()
 
     # Predict future renewable energy production using Prophet
@@ -51,7 +52,7 @@ def buildProphet(train_data_path, test_data_path):
     plt.title('Forecasted Renewable vs Non-renewable Power Production Ratio')
     axes = plt.gca()
     print('Future Renewable vs Non-renewable Power Production Ratio')
-    figR.savefig(wd + '/renewable-ratio-forecast.png')
+    figR.savefig(wd + '/renewables-ratio-forecast.png')
 
     # Caluclate prediction accuracy
     rmse = -1.0
@@ -90,8 +91,9 @@ def predictProphet(data_path,periods):
     plt.title('CA Forecasted Renewable vs Non-renewable Power Production Ratio')
     axes = plt.gca()
     print('CA Future Renewable vs Non-renewable Power Production Ratio')
-    wd = os.path.dirname(data_path)
-    fig.savefig(wd + '/renewable-ratio-forecast.png')
+    wd = os.path.dirname(data_path) + '/../images'
+    os.makedirs(wd, exist_ok=True)
+    fig.savefig(wd + '/renewables-ratio-forecast.png')
     forecast.rename(columns={'ds':'TIMESTAMP'}, inplace=True)
     forecast.set_index('TIMESTAMP',inplace=True)
     prediction = pd.DataFrame({'RENEWABLES_RATIO_MEAN':forecast['yhat'].resample('1Y').mean(),'RENEWABLES_RATIO_LOWER':forecast['yhat_lower'].resample('1Y').mean(),'RENEWABLES_RATIO_UPPER':forecast['yhat_upper'].resample('1Y').mean()})
@@ -222,7 +224,8 @@ def predictRandomForestRegression(data_path,periods):
     p = prediction.plot()
     p.set_title('CA Predicted Renewables Ratio by Random Forest Regression')
     p.set_ylabel('RATIO')
-    wd = os.path.dirname(data_path)
+    wd = os.path.dirname(data_path) + '/../images'
+    os.makedirs(wd, exist_ok=True)
     plt.savefig(wd + '/renewables-ratio-forecast-rf.png')
 
     return prediction
@@ -255,7 +258,8 @@ def visualizePrediction(wd, prediction):
     print(str.format("      low: {:.2f}, mean: {:.2f}, high: {:.2f}",prediction2045['RENEWABLES_RATIO_LOWER'].values[0],prediction2045['RENEWABLES_RATIO_MEAN'].values[0],prediction2045['RENEWABLES_RATIO_UPPER'].values[0]))
     
     # Table output
-    prediction.to_csv(wd+'/prediction.csv', index=False)
+    os.makedirs(wd + '/data/', exist_ok=True)
+    prediction.to_csv(wd+'/data/prediction.csv', index=False)
     s = io.StringIO()
     prediction.to_csv(s, index=False)
     
@@ -265,8 +269,8 @@ def visualizePrediction(wd, prediction):
     plot.set_title('Predicted CA Renewables vs Non-renewables Ratio')
     plot.set_xlabel('Date')
     plot.set_ylabel('Ratio')
-    plt.savefig(wd + '/prediction.png')
-    with open(wd + '/prediction.png', 'rb') as image_file:
+    plt.savefig(wd + '/images/prediction.png')
+    with open(wd + '/images/prediction.png', 'rb') as image_file:
         image = base64.b64encode(image_file.read())
     
     # Metadata
@@ -284,7 +288,7 @@ def visualizePrediction(wd, prediction):
             'source': '<html><head><title>Plot</title></head><body><div><img src="data:image/png;base64, ' + image.decode('ascii') +'" /></div></body></html>'
         }]
     }
-    metadata_path = wd + '/mlpipeline-ui-metadata.json'
+    metadata_path = wd + '/data/mlpipeline-ui-metadata.json'
     with open( metadata_path, 'w') as f:
         json.dump(metadata,f)
     
