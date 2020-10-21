@@ -39,7 +39,7 @@ Train a model using the selected best modeling technique and the full dataset, t
 [Visualize](images/prediction.png) predictions. Compare forecasted values for years 2030 and 2045 to California's goals of 60% and 100% renewable energy production respectively. 
 <img src="images/prediction.png">
 
-The model predicts that California's carbon neutrality goal is achievable, but also there is a large margin of error, especially when we look further into the future. One way to interpret this prediction is that whether the goal is achieved or not will depend on what we do every day while working to achieve carbon neutrality.
+The model predicts that California's carbon neutrality goal is achievable, but also there is a large margin of error, especially when we look further into the future. One way to interpret this prediction is that whether the goal is achieved or not will depend on what we do every day while working towards carbon neutrality.
 
 ## Data Science Workflow
 
