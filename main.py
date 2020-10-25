@@ -8,12 +8,6 @@ def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache =
     linear_rmse = linear_build_step(train_data_path, test_data_path)
     prophet_rmse = prophet_build_step(train_data_path, test_data_path)
     randomforest_rmse = randomforest_build_step(train_data_path, test_data_path)
-    #xgboost_rmse = xgboost_build_step(train_data_path, test_data_path)
-    #armodel_rmse = armodel_build_step(train_data_path, test_data_path)
-    #lstm_rmse = lstm_build_step(train_data_path, test_data_path)
-    #techniques = {'Linear': linear_rmse, 'Prophet':prophet_rmse, \
-    #               'RandomForest': randomforest_rmse, 'XGBoost': xgboost_rmse, \
-    #               'Autoregression': armodel_rmse, 'LSTM': lstm_rmse}
     techniques = {'Linear': linear_rmse, 'Prophet': prophet_rmse, 'RandomForest': randomforest_rmse}
     prediction = predict_with_linear_and_best_model_step(techniques, preprocessed_data_path)
     visualize_prediction_step(wd, prediction)
