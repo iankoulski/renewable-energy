@@ -22,24 +22,27 @@ The solution approach is to break down the problem and solve the following subpr
 Download all available data from the [bulletins](http://content.caiso.com/green/renewrpt/files.html) published on CAISO's website. Combine all data into a single table and save it locally as [data.csv](data/data.csv).
 
 ### Data preprocessing
-Assess data quality and perform clensing, formatting, imputation, and feature engineering as needed. Save the resulting preprocessed data set as [preprocessed_data.csv](preprocessed_data.csv). Perform some initial analysis and [visualization](images/renewables-ratio-history.png) of the data to better understand its content.
-<img src="images/renewables-ratio-history.png">
+Assess data quality and perform clensing, formatting, imputation, and feature engineering as needed. Save the resulting preprocessed data set as [preprocessed_data.csv](preprocessed_data.csv). Perform some initial analysis and [visualization](images/history.png) of the data to better understand its content.
+<img src="images/history.png">
 
 ### Dataset splitting
 Split the data into a training and testing set, producing files [train_data.csv](data/train_data.csv) and [test_data.csv](data/test_data.csv) respectively.
 
 ### Modeling technique selection
-Build models using different modeling techniques and the training dataset, validate the models and compute model quality metrics based on the testing dataset. Select the technique which produces the most accurate model. In this example we use the [Facebook Prophet](https://facebook.github.io/prophet/) time series forecasting procedure as well as the [Scikit-learn Random Forest Regressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html) to model the ratio of renewable vs. non-renewable energy over time. The final selection of modeling technique is done automatically based on the root mean square error calculated against the testing dataset.
+Build models using different modeling techniques and the training dataset, validate the models and compute model quality metrics based on the testing dataset. Select the technique which produces the most accurate model. In this example we use the [Facebook Prophet](https://facebook.github.io/prophet/) time series forecasting procedure as well as the [Scikit-learn Random Forest Regressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html) to model the percentage of renewable compared to total energy over time. The final selection of modeling technique is done automatically based on the root mean square error (RMSE) calculated against the testing dataset. For comparison, we also build a linear model by drawing a trend line through the training set data and calculate its RMSE by using the trend line and the actual values from the testing set. Other modeling techniques have also been implemented in the code and may be used to enhance this project in the future. 
 
 ### Model building and prediction
-Train a model using the selected best modeling technique and the full dataset, then [predict](images/renewables-ratio-forecast.png) renewable energy generation for the next 30 years. Save the result locally as [data/prediction.csv](prediction.csv).
-<img src="images/renewables-ratio-forecast.png">
+Train a model using the selected best modeling technique and the full dataset, then [predict](data/prediction-prophet.csv) renewable energy generation for the next 30 years. 
+<img src="images/prediction-prophet.png">
+For comparison, we also use the full dataset to [forecast](data/prediction-linear.csv) future values using the Linear model.
+<img src="images/prediction-linear.png"> 
 
 ### Visualizing results
-[Visualize](images/prediction.png) predictions. Compare forecasted values for years 2030 and 2045 to California's goals of 60% and 100% renewable energy production respectively. 
-<img src="images/prediction.png">
+Visualize [predictions](data/prediction-best.csv). Compare forecasted values for years 2030 and 2045 to California's goals of 60% and 100% renewable energy production respectively. 
+<img src="images/prediction-best.png">
 
-The model predicts that California's carbon neutrality goal is achievable, but also there is a large margin of error, especially when we look further into the future. One way to interpret this prediction is that whether the goal is achieved or not will depend on what we do every day while working towards carbon neutrality.
+
+The model's predictions show that California's carbon neutrality goal is ambitious, and there is a large margin of error, especially when we look further into the future. One way to interpret this result is that whether the goal is achieved or not will depend on the advances made every day while working towards carbon neutrality.
 
 ## Data Science Workflow
 
