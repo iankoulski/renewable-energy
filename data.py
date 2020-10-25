@@ -4,11 +4,13 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import timedelta,date,datetime
-from kale.sdk import step
+import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 
 def wrangle(wd, cache):
     print("Wrangling data ...")
+    print(str.format('wd={}',wd))
     data_path = wd + '/data/data.csv'
     cacheFound = False
     if cache:
@@ -70,9 +72,10 @@ def preprocess(data_path, cache):
         dataframe = df_format(dataframe)
         dataframe = df_fill(dataframe)
         dataframe = df_engineer(dataframe)
-        os.makedirs(os.path.dirname(preprocessed_data_path, exist_ok=True))
+        os.makedirs(os.path.dirname(preprocessed_data_path), exist_ok=True)
         dataframe.to_csv(preprocessed_data_path, index = False)
         print(str.format("Saved preprocessed data: {0} rows x {1} columns in file {2}",dataframe.shape[0],dataframe.shape[1],preprocessed_data_path))
+        plot(preprocessed_data_path)
     return preprocessed_data_path
 
 def df_cleanse(df):
@@ -202,8 +205,8 @@ def df_engineer(df):
     print("   Adding NONRENEWABLES ...")
     df['NONRENEWABLES'] = df['NUCLEAR'] + df['THERMAL'] + df['HYDRO'] + df['IMPORTS']
 
-    print("   Adding RATIO ...")
-    df['RENEWABLES_RATIO'] = df['RENEWABLES'] / df['NONRENEWABLES']
+    print("   Adding RENEWABLES_PCT ...")
+    df['RENEWABLES_PCT'] = 100*(df['RENEWABLES'] / (df['RENEWABLES'] + df['NONRENEWABLES']))
 
     return df
 
@@ -227,3 +230,30 @@ def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
         yield start_date + timedelta(n)
         
+def plot(data_path):
+    # load data
+    print("Creating data plots ...")
+    df = pd.read_csv(data_path)
+    df['TIMESTAMP'] = df['TIMESTAMP'].astype('datetime64')
+    df.set_index('TIMESTAMP',inplace=True)
+
+    # plot data
+    df.head()
+    plt.rcParams["figure.figsize"] = (12,9)
+    x = df.index
+    y = df['RENEWABLES_PCT']
+    daily = y.resample('24H').mean()
+    day = daily.index
+    hour = df['HOUR'].astype(int)
+    plt.subplot(2,1,1)
+    plt.scatter(day,daily)
+    plt.title('Renewables Power Production (%)')
+
+    plt.subplot(2, 1, 2)
+    sns.boxplot(hour, y)
+    plt.title('Renewables Power Production (%) grouped by Hour')
+    wd = os.path.dirname(data_path) + '/..'
+    os.makedirs(wd, exist_ok=True)
+    plt.savefig(wd + '/images/history.png')
+    print(str.format("Saved data plot as {} ", wd+'/images/history.png'))
+    #plt.show()

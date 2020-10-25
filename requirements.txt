@@ -7,3 +7,6 @@ fbprophet
 plotly
 matplotlib
 seaborn
+tensorflow
+xgboost
+statsmodels

@@ -1,12 +1,21 @@
 import sys
+import os
 
 def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache = True, train_pct = 70):
     data_path = wrangle_step(wd, wrangle_cache)
     preprocessed_data_path = preprocess_step(data_path, preprocess_cache)
     train_data_path, test_data_path = split_step(preprocessed_data_path, train_pct)
-    prophet_rmse, prophet_r2score = prophet_build_step(train_data_path, test_data_path)
-    randomforest_rmse, randomforest_r2score = randomforest_build_step(train_data_path, test_data_path)
-    prediction = predict_with_best_model_step(prophet_rmse, randomforest_rmse, preprocessed_data_path)
+    linear_rmse = linear_build_step(train_data_path, test_data_path)
+    prophet_rmse = prophet_build_step(train_data_path, test_data_path)
+    randomforest_rmse = randomforest_build_step(train_data_path, test_data_path)
+    #xgboost_rmse = xgboost_build_step(train_data_path, test_data_path)
+    #armodel_rmse = armodel_build_step(train_data_path, test_data_path)
+    #lstm_rmse = lstm_build_step(train_data_path, test_data_path)
+    #techniques = {'Linear': linear_rmse, 'Prophet':prophet_rmse, \
+    #               'RandomForest': randomforest_rmse, 'XGBoost': xgboost_rmse, \
+    #               'Autoregression': armodel_rmse, 'LSTM': lstm_rmse}
+    techniques = {'Linear': linear_rmse, 'Prophet': prophet_rmse, 'RandomForest': randomforest_rmse}
+    prediction = predict_with_linear_and_best_model_step(techniques, preprocessed_data_path)
     visualize_prediction_step(wd, prediction)
 
 def wrangle_step(wd, wrangle_cache):
@@ -24,25 +33,44 @@ def split_step(preprocessed_data_path, train_pct):
     train_data_path, test_data_path = split(preprocessed_data_path, train_pct)
     return train_data_path, test_data_path
 
+def linear_build_step(train_data_path, test_data_path):
+    from model import buildLinearModel
+    linear_rmse = buildLinearModel(train_data_path, test_data_path)
+    return linear_rmse
+
 def prophet_build_step(train_data_path, test_data_path):
     from model import buildProphet
-    prophet_rmse, prophet_r2score = buildProphet(train_data_path, test_data_path)
-    return prophet_rmse, prophet_r2score
+    prophet_rmse = buildProphet(train_data_path, test_data_path)
+    return prophet_rmse
 
 def randomforest_build_step(train_data_path, test_data_path):
     from model import buildRandomForestRegression
-    randomforest_rmse, randomforest_r2score = buildRandomForestRegression(train_data_path, test_data_path)
-    return randomforest_rmse, randomforest_r2score
+    randomforest_rmse = buildRandomForestRegression(train_data_path, test_data_path)
+    return randomforest_rmse
 
-def predict_with_best_model_step(prophet_rmse, randomforest_rmse, preprocessed_data_path):
-    from model import predictWithBestModel
-    prediction = predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path)
+def lstm_build_step(train_data_path, test_data_path):
+    from model import buildLSTM
+    lstm_rmse = buildLSTM(train_data_path, test_data_path)
+    return lstm_rmse
+
+def xgboost_build_step(train_data_path, test_data_path):
+    from model import buildXGBoostRegression
+    xgboost_rmse = buildXGBoostRegression(train_data_path, test_data_path)
+    return xgboost_rmse
+
+def armodel_build_step(train_data_path, test_data_path):
+    from model import buildARModel
+    armodel_rmse = buildARModel(train_data_path, test_data_path)
+    return armodel_rmse
+
+def predict_with_linear_and_best_model_step(techniques, preprocessed_data_path):
+    from model import predictWithLinearAndBestModel
+    prediction = predictWithLinearAndBestModel(techniques, preprocessed_data_path)
     return prediction
 
 def visualize_prediction_step(wd, prediction):
     from model import visualizePrediction
     visualizePrediction(wd, prediction)
-    
     
 def main(argv):
     print("Running renewable energy project ... ")
@@ -76,4 +104,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    cwd = os.getcwd()
+    print(str.format('Current working directory: {}', cwd))
     main(sys.argv[1:])
