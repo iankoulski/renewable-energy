@@ -1,5 +1,9 @@
 import sys
+from kale.sdk import pipeline, step
 
+@pipeline( name = 'renewable-energy-pipeline',
+           experiment = 'renewable-energy',
+           autosnapshot = True ) 
 def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache = True, train_pct = 70):
     data_path = wrangle_step(wd, wrangle_cache)
     preprocessed_data_path = preprocess_step(data_path, preprocess_cache)
@@ -9,36 +13,43 @@ def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache =
     prediction = predict_with_best_model_step(prophet_rmse, randomforest_rmse, preprocessed_data_path)
     visualize_prediction_step(wd, prediction)
 
+@step( name = 'wrangle_data' )
 def wrangle_step(wd, wrangle_cache):
     from data import wrangle
     data_path = wrangle(wd, wrangle_cache)
     return data_path
 
+@step( name = 'preprocess_data' )
 def preprocess_step(data_path, preprocess_cache):
     from data import preprocess
     preprocessed_data_path = preprocess(data_path, preprocess_cache)
     return preprocessed_data_path
 
+@step( name = 'split_dataset' )
 def split_step(preprocessed_data_path, train_pct):
     from data import split
     train_data_path, test_data_path = split(preprocessed_data_path, train_pct)
     return train_data_path, test_data_path
 
+@step( name = 'prophet_build' )
 def prophet_build_step(train_data_path, test_data_path):
     from model import buildProphet
     prophet_rmse, prophet_r2score = buildProphet(train_data_path, test_data_path)
     return prophet_rmse, prophet_r2score
 
+@step( name = 'randomforest_build' )
 def randomforest_build_step(train_data_path, test_data_path):
     from model import buildRandomForestRegression
     randomforest_rmse, randomforest_r2score = buildRandomForestRegression(train_data_path, test_data_path)
     return randomforest_rmse, randomforest_r2score
 
+@step( name = 'predict_with_best_model' )
 def predict_with_best_model_step(prophet_rmse, randomforest_rmse, preprocessed_data_path):
     from model import predictWithBestModel
     prediction = predictWithBestModel(prophet_rmse, randomforest_rmse, preprocessed_data_path)
     return prediction
 
+@step( name = 'visualize_prediction' )
 def visualize_prediction_step(wd, prediction):
     from model import visualizePrediction
     visualizePrediction(wd, prediction)
