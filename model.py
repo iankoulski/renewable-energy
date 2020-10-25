@@ -477,21 +477,22 @@ def predictLinearModel(data_path, periods):
     print('Lower: y=%.6fx+(%.6f)'%(zmin[0],zmin[1]))
     print("Saving Linear Model Predictions ...")
     predictions = prediction
-    predictions['RENEWABLES_PCT_UPPER'] = predictionmax['RENEWABLES_PCT']
     predictions['RENEWABLES_PCT_LOWER'] = predictionmin['RENEWABLES_PCT']
+    predictions['RENEWABLES_PCT_UPPER'] = predictionmax['RENEWABLES_PCT']
     predictions.to_csv(os.path.dirname(data_path)+'/prediction-linear.csv')
     return predictions
+
+def rankModels(models):
+    print("\nComparing models ...")
+    if 'Linear' in models.keys():
+        models.pop('Linear')
+    ranked_models = sorted(models.items(), key=lambda x: x[1])
+    return ranked_models    
 
 def predictWithLinearAndBestModel(techniques, preprocessed_data_path):
     print("\nPredicting with Linear and Best model ...")
     prediction = predictLinearModel(preprocessed_data_path, 12*29+2)
-    
-    print("\nComparing models ...")
-    if 'Linear' in techniques.keys():
-        techniques.pop('Linear')
-
-    s = sorted(techniques.items(), key=lambda x: x[1])
-    bestModel = s[0][0]
+    bestModel = techniques[0][0]
     print(str.format('The best model is {}', bestModel))
     if bestModel == 'Prophet':
         prediction = predictProphet(preprocessed_data_path,365*30)

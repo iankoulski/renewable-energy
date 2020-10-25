@@ -8,10 +8,10 @@ def renewable_energy_pipeline(wd = '.', wrangle_cache = True, preprocess_cache =
     linear_rmse = linear_build_step(train_data_path, test_data_path)
     prophet_rmse = prophet_build_step(train_data_path, test_data_path)
     randomforest_rmse = randomforest_build_step(train_data_path, test_data_path)
-    techniques = {'Linear': linear_rmse, 'Prophet': prophet_rmse, 'RandomForest': randomforest_rmse}
+    techniques = rank_models_step(linear_rmse, prophet_rmse, randomforest_rmse)
     prediction = predict_with_linear_and_best_model_step(techniques, preprocessed_data_path)
     visualize_prediction_step(wd, prediction)
-
+    
 def wrangle_step(wd, wrangle_cache):
     from data import wrangle
     data_path = wrangle(wd, wrangle_cache)
@@ -56,6 +56,12 @@ def armodel_build_step(train_data_path, test_data_path):
     from model import buildARModel
     armodel_rmse = buildARModel(train_data_path, test_data_path)
     return armodel_rmse
+
+def rank_models_step(linear_rmse, prophet_rmse, randomforest_rmse):
+    from model import rankModels
+    models = {'Linear': linear_rmse, 'Prophet': prophet_rmse, 'RandomForest': randomforest_rmse}    
+    ranked_models = rankModels(models)
+    return ranked_models
 
 def predict_with_linear_and_best_model_step(techniques, preprocessed_data_path):
     from model import predictWithLinearAndBestModel
